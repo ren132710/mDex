@@ -1,0 +1,31 @@
+body {
+  font-family: 'SuisseIntl', 'Helvetica', 'Arial', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #3f3f48;
+  min-height: 150vh;
+  background-color: #f2f2f2;
+  position: relative;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.error {
+  color: red;
+}
+
+.btn {
+  margin: 5px;
+}
+
+.to-list {
+  border-style: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  text-align: right;
+  cursor: pointer;
+  height: 30px;
+}
+
+.to-list:hover {
+  background-color: #c6c7f3;
+}
