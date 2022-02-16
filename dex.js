@@ -2,10 +2,13 @@
  * Globals
  */
 
-const rank = 100
-const chainID = 1
+const rank = 300
+let chain = 'bsc'
 let topTokens = []
 let tickers = []
+let tokenList = []
+let quoteRecord
+let userAddress
 
 /*
  * DOM handles
@@ -35,83 +38,71 @@ btnGetQuote.addEventListener('click', getQuote)
 btnCancel.addEventListener('click', cancel)
 
 /*
- * Fetch Token Data
+ * Initialize Moralis
+ */
+
+const serverUrl = 'https://o8dn9wfqrhke.usemoralis.com:2053/server'
+const appId = 'jY2tKsqywB9GOI81MP6IANuKpyGK4hrYROjXaf8G'
+
+//TODO: Should Moralis.start() be asynchronous? Is this causing the oneInch call below to throw TypeError??
+Moralis.start({ serverUrl, appId })
+
+//onramper plugin
+async function buyCrypto() {
+  Moralis.Plugins.fiat.buy()
+}
+
+Moralis.initPlugins().then(() => console.log('Plugins have been initialized'))
+
+/*
+ * Initialize Page
  */
 
 async function fetchTopTickers() {
-  try {
-    let response = await fetch(
-      `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${rank}&page=1`
-    )
+  let response = await fetch(
+    `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${rank}&page=1`
+  )
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
+  let tokens = await response.json()
 
-    let tokens = await response.json()
+  //keep a record of the top tickers
+  //.includes() is case sensitive, 1inch symbols are upper case, so toUpperCase()
+  tickers = tokens.map(({ symbol }) => symbol.toUpperCase())
 
-    //keep a record of the top tickers
-    //.includes() is case sensitive, 1inch symbols are upper case, so toUpperCase()
-    tickers = tokens.map(({ symbol }) => symbol.toUpperCase())
-
-    return tickers
-  } catch (e) {
-    console.log(`'ERROR: ' ${e}`)
-  }
+  return tickers
 }
 
 async function fetchTopTokenInfo(tickers) {
-  try {
-    let response = await fetch(
-      `https://api.1inch.exchange/v3.0/${chainID}/Tokens`
-    )
+  //TODO: This keeps throwing TypeError: Cannot read properties of undefined (reading getSupportedTokens)
+  //TODO: I keep saving this .js file until it works
+  const tokens = await Moralis.Plugins.oneInch.getSupportedTokens({
+    chain: chain, // The blockchain you want to use (eth/bsc/polygon)
+  })
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    let tokens = await response.json()
+  //1inch JSON hierarchy requires going 2 levels deep to get the value objects
+  tokenList = Object.values(tokens.tokens)
 
-    //1inch JSON hierarchy requires going 2 levels deep to get the value objects
-    let tokenList = Object.values(tokens.tokens)
-
-    // .includes works too but does not preserve the market cap rank given by the tickers sort order
-    // topTokens = tokenList.filter((token) => tickers.includes(token.symbol))
-
-    //keep a record of the top ERC20 tokens
-    topTokens = generateTopTokens(tickers, tokenList)
-    console.log(topTokens)
-
-    return topTokens
-  } catch (e) {
-    console.log(`'ERROR: ' ${e}`)
-  }
+  //keep a record of the top ERC20 tokens
+  topTokens = tokenList.filter((token) => tickers.includes(token.symbol))
+  return topTokens
 }
 
-function generateTopTokens(tickers, tokenList) {
-  let topTokens = []
-
-  tickers.forEach((ticker) => {
-    let foundToken = tokenList.find(({ symbol }) => {
-      return symbol === ticker
-    })
-    if (!(foundToken == null)) {
-      topTokens.push(foundToken)
-    }
-  })
-  return topTokens
+//initialize swap token dropdown
+function renderToTokenList(tokens) {
+  const options = tokens
+    .map(
+      (token) =>
+        `<option value='${token.decimals}-${token.address}'>${token.name} (${token.symbol})</option>`
+    )
+    .join('')
+  toTokenList.innerHTML = options
 }
 
 fetchTopTickers().then(fetchTopTokenInfo).then(renderToTokenList)
 
 /*
- * Page Initialization
+ * Connect / Disconnect Wallet
  */
-
-const serverUrl = 'https://o8dn9wfqrhke.usemoralis.com:2053/server'
-const appId = 'jY2tKsqywB9GOI81MP6IANuKpyGK4hrYROjXaf8G'
-Moralis.start({ serverUrl, appId })
-
-Moralis.initPlugins().then(() => console.log('Plugins have been initialized'))
 
 // Authentication
 async function login() {
@@ -119,7 +110,10 @@ async function login() {
   if (!user) {
     user = await Moralis.authenticate()
   }
-  console.log('logged in user:', user)
+  //TODO: What is the best way to make the user's address available for swap execution? Store in global variable?
+  userAddress = user.get('ethAddress')
+
+  console.log('logged in user: ', user, ' logged in address: ', userAddress)
   getTokenBalances()
 }
 
@@ -128,10 +122,10 @@ async function logOut() {
   console.log('logged out')
 }
 
-//without parameters, defaults to "ETH" as chain and the current user
+//without options parameter, defaults to "Eth" as chain and the current user
 async function getTokenBalances() {
-  const balances = await Moralis.Web3API.account.getTokenBalances()
-  console.log(balances)
+  const options = { chain: chain }
+  const balances = await Moralis.Web3API.account.getTokenBalances(options)
 
   tokenBalancesTBody.innerHTML = balances
     .map(
@@ -163,12 +157,14 @@ async function getTokenBalances() {
   }
 }
 
-// const tokenValue = (value, decimals) =>
-//   decimals ? value / Math.pow(10, decimals) : value
 function tokenValue(value, decimals) {
   let result = decimals ? value / Math.pow(10, decimals) : value
   return result
 }
+
+/*
+ * Quoting & Swapping
+ */
 
 async function initSwapForm(event) {
   //switch off the forms default behavior
@@ -190,32 +186,11 @@ async function initSwapForm(event) {
   errorContainer.innerHTML = ''
 }
 
-/*
- * Functions
- */
-
-//onramper plugin
-async function buyCrypto() {
-  Moralis.Plugins.fiat.buy()
-}
-
-//initialize swap token dropdown
-function renderToTokenList(tokens) {
-  console.log(tokens)
-  const options = tokens
-    .map(
-      (token) =>
-        `<option value='${token.decimals}-${token.address}'>${token.name} (${token.symbol})</option>`
-    )
-    .join('')
-  toTokenList.innerHTML = options
-}
-
 async function getQuote(event) {
   event.preventDefault()
   //convert to floating point so we can convert to WEI, etc
-  const fromAmount = Number.parseFloat(selectedTokenAmount.value)
-  const fromMaxAmount = Number.parseFloat(selectedToken.dataset.max)
+  let fromAmount = Number.parseFloat(selectedTokenAmount.value)
+  let fromMaxAmount = Number.parseFloat(selectedToken.dataset.max)
 
   //validate input, if either or both are true
   // debugger
@@ -224,9 +199,89 @@ async function getQuote(event) {
     console.log(
       `Error: Amount must be a number and less than ${fromMaxAmount}.`
     )
+    return
   } else {
-    //clear error message, if any
     errorContainer.innerHTML = ''
+  }
+
+  //submission of quote
+  let fromDecimals = selectedToken.dataset.decimals
+  let fromAddress = selectedToken.dataset.address
+  let toToken = getToTokenSelection()
+
+  fromAmountToWei = toWei(fromAmount, fromDecimals)
+
+  try {
+    let quote = await Moralis.Plugins.oneInch.quote({
+      chain: 'bsc', // The blockchain you want to use (eth/bsc/polygon)
+      fromTokenAddress: fromAddress,
+      toTokenAddress: toToken.toAddress,
+      amount: fromAmountToWei,
+    })
+    console.log(quote)
+    quoteRecord = quote
+
+    let sellAmount = tokenValue(quote.fromTokenAmount, quote.fromToken.decimals)
+    let buyAmount = tokenValue(quote.toTokenAmount, quote.toToken.decimals)
+
+    quoteContainer.classList.remove('hide')
+    quoteContainer.innerHTML = `
+    <p>${sellAmount} ${quote.fromToken.symbol} = ${buyAmount} ${quote.toToken.symbol} (approx.) </p>
+    <br>
+    <p>Estimated gas fee: ${quote.estimatedGas} </p>
+    <br>
+    <button id="btn-execute-swap" class="btn btn-outline-secondary">Execute Swap</button>
+    `
+    document
+      .querySelector('#btn-execute-swap')
+      .addEventListener('click', executeSwap)
+  } catch (e) {
+    quoteContainer.innerHTML = `<p class='error'>Quote submission did not succeed: ${e}.</p>`
+    console.log(`QUOTE SUBMISSION ERROR:  ${e}`)
+  }
+}
+
+//TODO: What is the best way to pass the Quote object to the executeSwap function? I used a global variable
+//TODO: Do I need to pass in the event here? What does it do and how can it be used?
+async function executeSwap(event) {
+  console.log('Event passed to executeSwap: ', event)
+  event.preventDefault()
+  console.log('fromTokenAddress: ', quoteRecord.fromToken.address)
+  console.log('toTokenAddress: ', quoteRecord.toToken.address)
+  console.log('fromTokenAmount: ', quoteRecord.fromTokenAmount)
+  try {
+    let receipt = await Moralis.Plugins.oneInch.swap({
+      chain: chain,
+      // The token you want to swap
+      fromTokenAddress: quoteRecord.fromToken.address,
+      // The token you want to receive
+      toTokenAddress: quoteRecord.toToken.address,
+      // The amount you want to swap
+      amount: quoteRecord.fromTokenAmount,
+      // Your wallet address
+      fromAddress: userAddress,
+
+      slippage: 1,
+    })
+    console.log(receipt)
+  } catch (e) {
+    console.log(`SWAP EXECUTION ERROR:  ${e}`)
+  }
+}
+
+function toWei(value, decimals) {
+  let result = Moralis.Units.Token(value, decimals).toString()
+  return result
+}
+
+function getToTokenSelection() {
+  //parse the option values
+  let toToken = document.querySelector('#toToken').value
+  let [toDec, toAddr] = toToken.split('-')
+
+  return {
+    toAddress: toAddr,
+    toDecimals: toDec,
   }
 }
 
@@ -250,4 +305,5 @@ async function cancel(event) {
 
   //initialize the quote container
   quoteContainer.innerHTML = ''
+  quoteContainer.classList.add('hide')
 }
