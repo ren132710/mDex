@@ -45,6 +45,7 @@ const serverUrl = 'https://o8dn9wfqrhke.usemoralis.com:2053/server'
 const appId = 'jY2tKsqywB9GOI81MP6IANuKpyGK4hrYROjXaf8G'
 
 //TODO: Should Moralis.start() be asynchronous? Is this causing the oneInch call below to throw TypeError??
+//TODO: See lines 77, 78 below
 Moralis.start({ serverUrl, appId })
 
 //onramper plugin
@@ -73,8 +74,8 @@ async function fetchTopTickers() {
 }
 
 async function fetchTopTokenInfo(tickers) {
-  //TODO: This keeps throwing TypeError: Cannot read properties of undefined (reading getSupportedTokens)
-  //TODO: I keep saving this .js file until it works
+  //TODO: This call keeps throwing 'TypeError: Cannot read properties of undefined (reading getSupportedTokens)'
+  //TODO: My work around: keep saving the this .js file until it works
   const tokens = await Moralis.Plugins.oneInch.getSupportedTokens({
     chain: chain, // The blockchain you want to use (eth/bsc/polygon)
   })
@@ -110,7 +111,7 @@ async function login() {
   if (!user) {
     user = await Moralis.authenticate()
   }
-  //TODO: What is the best way to make the user's address available for swap execution? Store in global variable?
+  //TODO: What is the best and safest way to make the user's address available for swap execution? Store in global variable?
   userAddress = user.get('ethAddress')
 
   console.log('logged in user: ', user, ' logged in address: ', userAddress)
@@ -169,7 +170,7 @@ function tokenValue(value, decimals) {
 async function initSwapForm(event) {
   //switch off the forms default behavior
   event.preventDefault()
-  //assign the selected token data attributes to the .js-from-token span
+  //assign the selected token data attributes to the .from-token span
   selectedToken.innerText = event.target.dataset.symbol
   selectedToken.dataset.address = event.target.dataset.address
   selectedToken.dataset.decimals = event.target.dataset.decimals
@@ -188,12 +189,11 @@ async function initSwapForm(event) {
 
 async function getQuote(event) {
   event.preventDefault()
-  //convert to floating point so we can convert to WEI, etc
+  //convert to floating point so we can convert to WEI
   let fromAmount = Number.parseFloat(selectedTokenAmount.value)
   let fromMaxAmount = Number.parseFloat(selectedToken.dataset.max)
 
-  //validate input, if either or both are true
-  // debugger
+  //validate input, if either or both are true then error
   if (Number.isNaN(fromAmount) || fromAmount > fromMaxAmount) {
     errorContainer.innerHTML = `Amount must be a number and less than ${fromMaxAmount}.`
     console.log(
@@ -242,7 +242,6 @@ async function getQuote(event) {
 }
 
 //TODO: What is the best way to pass the Quote object to the executeSwap function? I used a global variable
-//TODO: Do I need to pass in the event here? What does it do and how can it be used?
 async function executeSwap(event) {
   console.log('Event passed to executeSwap: ', event)
   event.preventDefault()
