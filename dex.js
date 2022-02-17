@@ -213,7 +213,6 @@ async function getQuote(event) {
     quoteContainer.innerHTML = `<p class='error'>Quote submission did not succeed: ${e}.</p>`
     console.log(`QUOTE SUBMISSION ERROR:  ${e}`)
   }
-
   return
 }
 
