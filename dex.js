@@ -42,7 +42,6 @@ btnCancel.addEventListener('click', cancel)
  * Initialize Moralis
  */
 
-//TODO: Should Moralis.start() be asynchronous? Is this causing the below oneInch api call to throw a TypeError??
 const serverUrl = 'https://sjcodboestcj.usemoralis.com:2053/server'
 const appId = 'KDNPoK8MhB38ipDGjoTLuwFwgKY0iI3aNdZxePWQ'
 Moralis.start({ serverUrl, appId })
@@ -52,11 +51,16 @@ async function buyCrypto() {
   Moralis.Plugins.fiat.buy()
 }
 
-Moralis.initPlugins().then(() => console.log('Plugins have been initialized'))
-
 /*
  * Initialize Page
  */
+
+Moralis.initPlugins().then(() => {
+  console.log('Plugins have been initialized')
+  fetchTopTickers()
+    .then((tickers) => fetchTopTokenInfo(tickers))
+    .then((tokens) => renderToTokenList(tokens))
+})
 
 async function fetchTopTickers() {
   let response = await fetch(
@@ -73,8 +77,6 @@ async function fetchTopTickers() {
 }
 
 async function fetchTopTokenInfo(tickers) {
-  //TODO: This call keeps throwing 'TypeError: Cannot read properties of undefined (reading getSupportedTokens)'
-  //TODO: My work around: keep refreshing the page, or resaving the .js file
   const tokens = await Moralis.Plugins.oneInch.getSupportedTokens({
     chain: chain, // The blockchain you want to use (eth/bsc/polygon)
   })
@@ -98,8 +100,6 @@ function renderToTokenList(tokens) {
   toTokenList.innerHTML = options
 }
 
-fetchTopTickers().then(fetchTopTokenInfo).then(renderToTokenList)
-
 /*
  * Connect / Disconnect Wallet
  */
@@ -110,7 +110,7 @@ async function login() {
   if (!user) {
     user = await Moralis.authenticate()
   }
-  //TODO: What is the best and safest way to make the user's address available for swap execution? Store in global variable?
+  //TODO: Is storing user's address in a global variable the best way to make the user's address available for swap execution?
   userAddress = user.get('ethAddress')
 
   console.log('logged in user: ', user, ' logged in address: ', userAddress)
@@ -207,7 +207,7 @@ async function getQuote(event) {
     displayQuoteInfo(quote)
   } catch (e) {
     quoteContainer.classList.remove('hide')
-    quoteContainer.innerHTML = `<p class='error'>Quote submission did not succeed. Contact support.</p>`
+    quoteContainer.innerHTML = `<p class='error'>Quote submission did not succeed.</p>`
     console.log(`QUOTE SUBMISSION ERROR:  ${e}`)
   }
   return
@@ -231,7 +231,6 @@ function displayQuoteInfo(quote) {
   return
 }
 
-//TODO: What is the best way to pass the Quote object to the executeSwap function? I used a global variable
 async function executeSwap(event) {
   //console.log('Event passed to executeSwap: ', event)
   event.preventDefault()
@@ -252,7 +251,7 @@ async function executeSwap(event) {
     console.log(receipt)
   } catch (e) {
     quoteContainer.innerHTML = ''
-    quoteContainer.innerHTML = `<p class='error'>Swap execution did not succeed. Contact support.</p>`
+    quoteContainer.innerHTML = `<p class='error'>Swap execution did not succeed.</p>`
     console.log(`SWAP EXECUTION ERROR:  ${e}`)
   }
 }
@@ -328,7 +327,6 @@ function toWei(value, decimals) {
   return result
 }
 
-//TODO: rename this function
 function tokenValue(value, decimals) {
   let result = decimals ? value / Math.pow(10, decimals) : value
   return result
