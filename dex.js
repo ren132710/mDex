@@ -44,8 +44,7 @@ btnCancel.addEventListener('click', cancel)
 const serverUrl = 'https://o8dn9wfqrhke.usemoralis.com:2053/server'
 const appId = 'jY2tKsqywB9GOI81MP6IANuKpyGK4hrYROjXaf8G'
 
-//TODO: Should Moralis.start() be asynchronous? Is this causing the oneInch call below to throw TypeError??
-//TODO: See lines 77, 78 below
+//TODO: Should Moralis.start() be asynchronous? Is this causing the below oneInch api call to throw a TypeError??
 Moralis.start({ serverUrl, appId })
 
 //onramper plugin
@@ -75,7 +74,7 @@ async function fetchTopTickers() {
 
 async function fetchTopTokenInfo(tickers) {
   //TODO: This call keeps throwing 'TypeError: Cannot read properties of undefined (reading getSupportedTokens)'
-  //TODO: My work around: keep saving the this .js file until it works
+  //TODO: My work around: keep refreshing the page, or resaving the .js file
   const tokens = await Moralis.Plugins.oneInch.getSupportedTokens({
     chain: chain, // The blockchain you want to use (eth/bsc/polygon)
   })
@@ -158,11 +157,6 @@ async function getTokenBalances() {
   }
 }
 
-function tokenValue(value, decimals) {
-  let result = decimals ? value / Math.pow(10, decimals) : value
-  return result
-}
-
 /*
  * Quoting & Swapping
  */
@@ -189,56 +183,50 @@ async function initSwapForm(event) {
 
 async function getQuote(event) {
   event.preventDefault()
-  //convert to floating point so we can convert to WEI
-  let fromAmount = Number.parseFloat(selectedTokenAmount.value)
-  let fromMaxAmount = Number.parseFloat(selectedToken.dataset.max)
 
-  //validate input, if either or both are true then error
-  if (Number.isNaN(fromAmount) || fromAmount > fromMaxAmount) {
-    errorContainer.innerHTML = `Amount must be a number and less than ${fromMaxAmount}.`
-    console.log(
-      `Error: Amount must be a number and less than ${fromMaxAmount}.`
-    )
-    return
-  } else {
-    errorContainer.innerHTML = ''
-  }
+  let fromToken = getFromTokenProperties()
+  let toToken = getToTokenProperties()
 
-  //submission of quote
-  let fromDecimals = selectedToken.dataset.decimals
-  let fromAddress = selectedToken.dataset.address
-  let toToken = getToTokenSelection()
+  //unless the amount is valid, exit the function
+  if (!isAmountValid(fromToken)) return
 
-  fromAmountToWei = toWei(fromAmount, fromDecimals)
+  fromAmountWei = toWei(fromToken.amount, fromToken.decimals)
 
   try {
     let quote = await Moralis.Plugins.oneInch.quote({
       chain: 'bsc', // The blockchain you want to use (eth/bsc/polygon)
-      fromTokenAddress: fromAddress,
-      toTokenAddress: toToken.toAddress,
-      amount: fromAmountToWei,
+      fromTokenAddress: fromToken.address,
+      toTokenAddress: toToken.address,
+      amount: fromAmountWei,
     })
     console.log(quote)
+
+    //keep a record of the quote
     quoteRecord = quote
+  } catch (e) {
+    quoteContainer.innerHTML = `<p class='error'>Quote submission did not succeed: ${e}.</p>`
+    console.log(`QUOTE SUBMISSION ERROR:  ${e}`)
+  }
+  displayQuoteInfo(quote)
+  return
+}
 
-    let sellAmount = tokenValue(quote.fromTokenAmount, quote.fromToken.decimals)
-    let buyAmount = tokenValue(quote.toTokenAmount, quote.toToken.decimals)
+function displayQuoteInfo(quote) {
+  let sellAmount = tokenValue(quote.fromTokenAmount, quote.fromToken.decimals)
+  let buyAmount = tokenValue(quote.toTokenAmount, quote.toToken.decimals)
 
-    quoteContainer.classList.remove('hide')
-    quoteContainer.innerHTML = `
+  quoteContainer.classList.remove('hide')
+  quoteContainer.innerHTML = `
     <p>${sellAmount} ${quote.fromToken.symbol} = ${buyAmount} ${quote.toToken.symbol} (approx.) </p>
     <br>
     <p>Estimated gas fee: ${quote.estimatedGas} </p>
     <br>
     <button id="btn-execute-swap" class="btn btn-outline-secondary">Execute Swap</button>
     `
-    document
-      .querySelector('#btn-execute-swap')
-      .addEventListener('click', executeSwap)
-  } catch (e) {
-    quoteContainer.innerHTML = `<p class='error'>Quote submission did not succeed: ${e}.</p>`
-    console.log(`QUOTE SUBMISSION ERROR:  ${e}`)
-  }
+  document
+    .querySelector('#btn-execute-swap')
+    .addEventListener('click', executeSwap)
+  return
 }
 
 //TODO: What is the best way to pass the Quote object to the executeSwap function? I used a global variable
@@ -268,22 +256,6 @@ async function executeSwap(event) {
   }
 }
 
-function toWei(value, decimals) {
-  let result = Moralis.Units.Token(value, decimals).toString()
-  return result
-}
-
-function getToTokenSelection() {
-  //parse the option values
-  let toToken = document.querySelector('#toToken').value
-  let [toDec, toAddr] = toToken.split('-')
-
-  return {
-    toAddress: toAddr,
-    toDecimals: toDec,
-  }
-}
-
 async function cancel(event) {
   event.preventDefault()
   //disable the input box and buttons
@@ -305,4 +277,58 @@ async function cancel(event) {
   //initialize the quote container
   quoteContainer.innerHTML = ''
   quoteContainer.classList.add('hide')
+}
+
+function getFromTokenProperties() {
+  //convert to floating point so we can convert to WEI
+  let amount = Number.parseFloat(selectedTokenAmount.value)
+  let maxAmount = Number.parseFloat(selectedToken.dataset.max)
+  let decimals = selectedToken.dataset.decimals
+  let address = selectedToken.dataset.address
+
+  return {
+    address: address,
+    decimals: decimals,
+    amount: amount,
+    maxAmount: maxAmount,
+  }
+}
+
+function getToTokenProperties() {
+  //parse the option values
+  let toToken = document.querySelector('#toToken').value
+  let [decimals, address] = toToken.split('-')
+
+  return {
+    address: address,
+    decimals: decimals,
+  }
+}
+
+function isAmountValid(fromToken) {
+  if (Number.isNaN(fromToken.amount)) {
+    console.log(`Error: Amount is not a number.`)
+    errorContainer.innerHTML = `Amount is not a number. Try again.`
+    return false
+  }
+  if (fromToken.amount > fromToken.maxAmount) {
+    console.log(
+      `Error: Amount must be a number and less than ${fromToken.maxAmount}.`
+    )
+    errorContainer.innerHTML = `Balance exceeded. Amount must be a number less than ${fromToken.maxAmount}.`
+    return false
+  }
+  errorContainer.innerHTML = ''
+  return true
+}
+
+function toWei(value, decimals) {
+  let result = Moralis.Units.Token(value, decimals).toString()
+  return result
+}
+
+//TODO: rename this function
+function tokenValue(value, decimals) {
+  let result = decimals ? value / Math.pow(10, decimals) : value
+  return result
 }
