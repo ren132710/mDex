@@ -1,10 +1,14 @@
 //TODO: Uncaught ReferenceError: require is not defined
-var req = require('dotenv').config()
-// require('dotenv').config({ path: './.env' })
-const serverUrl = req.process.env.MDEX_MORALIS_SERVER_URL
-const appId = req.process.env.MDEX_MORALIS_APPLICATION_ID
-console.log(serverUrl)
-console.log(appId)
+require('dotenv').config()
+// require('dotenv').config({ debug: true })
+// import 'dotenv/config'
+
+console.log('The process.env: ', process.env)
+
+const serverUrl = process.env.MDEX_MORALIS_SERVER_URL
+const appId = process.env.MDEX_MORALIS_APPLICATION_ID
+console.log('The serverUrl: ', serverUrl)
+console.log('The appId: ', appId)
 
 /*
  * Globals
