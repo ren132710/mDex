@@ -39,7 +39,7 @@ btnGetQuote.addEventListener('click', getQuote)
 btnCancel.addEventListener('click', cancel)
 
 /*
- * Initialize Moralis
+ * Initialize Page
  */
 
 const serverUrl = 'https://sjcodboestcj.usemoralis.com:2053/server'
@@ -50,10 +50,6 @@ Moralis.start({ serverUrl, appId })
 async function buyCrypto() {
   Moralis.Plugins.fiat.buy()
 }
-
-/*
- * Initialize Page
- */
 
 Moralis.initPlugins().then(() => {
   console.log('Plugins have been initialized')
