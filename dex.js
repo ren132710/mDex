@@ -1,3 +1,11 @@
+//TODO: Uncaught ReferenceError: require is not defined
+var req = require('dotenv').config()
+// require('dotenv').config({ path: './.env' })
+const serverUrl = req.process.env.MDEX_MORALIS_SERVER_URL
+const appId = req.process.env.MDEX_MORALIS_APPLICATION_ID
+console.log(serverUrl)
+console.log(appId)
+
 /*
  * Globals
  */
@@ -40,9 +48,6 @@ btnCancel.addEventListener('click', cancel)
 /*
  * Initialize Moralis
  */
-
-const serverUrl = 'https://sjcodboestcj.usemoralis.com:2053/server'
-const appId = 'KDNPoK8MhB38ipDGjoTLuwFwgKY0iI3aNdZxePWQ'
 
 //TODO: Should Moralis.start() be asynchronous? Is this causing the below oneInch api call to throw a TypeError??
 Moralis.start({ serverUrl, appId })
@@ -232,11 +237,8 @@ function displayQuoteInfo(quote) {
 
 //TODO: What is the best way to pass the Quote object to the executeSwap function? I used a global variable
 async function executeSwap(event) {
-  console.log('Event passed to executeSwap: ', event)
+  //console.log('Event passed to executeSwap: ', event)
   event.preventDefault()
-  console.log('fromTokenAddress: ', quoteRecord.fromToken.address)
-  console.log('toTokenAddress: ', quoteRecord.toToken.address)
-  console.log('fromTokenAmount: ', quoteRecord.fromTokenAmount)
   try {
     let receipt = await Moralis.Plugins.oneInch.swap({
       chain: chain,

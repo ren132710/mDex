@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "requirejs": "^2.3.6"
+  }
+}
