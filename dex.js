@@ -3,7 +3,7 @@
  */
 
 const rank = 300
-let chain = 'bsc'
+let chain = 'bsc' //(eth/bsc/polygon)
 let topTokens = []
 let tickers = []
 let tokenList = []
@@ -191,7 +191,7 @@ async function getQuote(event) {
 
   try {
     let quote = await Moralis.Plugins.oneInch.quote({
-      chain: 'bsc', // The blockchain you want to use (eth/bsc/polygon)
+      chain: chain,
       fromTokenAddress: fromToken.address,
       toTokenAddress: toToken.address,
       amount: fromAmountWei,
