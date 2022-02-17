@@ -1,15 +1,3 @@
-//TODO: Uncaught ReferenceError: require is not defined
-require('dotenv').config()
-// require('dotenv').config({ debug: true })
-// import 'dotenv/config'
-
-console.log('The process.env: ', process.env)
-
-const serverUrl = process.env.MDEX_MORALIS_SERVER_URL
-const appId = process.env.MDEX_MORALIS_APPLICATION_ID
-console.log('The serverUrl: ', serverUrl)
-console.log('The appId: ', appId)
-
 /*
  * Globals
  */
@@ -55,6 +43,8 @@ btnCancel.addEventListener('click', cancel)
  */
 
 //TODO: Should Moralis.start() be asynchronous? Is this causing the below oneInch api call to throw a TypeError??
+const serverUrl = 'https://sjcodboestcj.usemoralis.com:2053/server'
+const appId = 'KDNPoK8MhB38ipDGjoTLuwFwgKY0iI3aNdZxePWQ'
 Moralis.start({ serverUrl, appId })
 
 //onramper plugin
@@ -185,10 +175,11 @@ async function initSwapForm(event) {
   //enable the buttons
   btnGetQuote.removeAttribute('disabled')
   btnCancel.removeAttribute('disabled')
-  //initialize the quote container
-  quoteContainer.innerHTML = ''
   //clear any errors
   errorContainer.innerHTML = ''
+  //initialize the quote container
+  quoteContainer.innerHTML = ''
+  quoteContainer.classList.add('hide')
 }
 
 async function getQuote(event) {
@@ -215,7 +206,8 @@ async function getQuote(event) {
     quoteRecord = quote
     displayQuoteInfo(quote)
   } catch (e) {
-    quoteContainer.innerHTML = `<p class='error'>Quote submission did not succeed: ${e}.</p>`
+    quoteContainer.classList.remove('hide')
+    quoteContainer.innerHTML = `<p class='error'>Quote submission did not succeed. Contact support.</p>`
     console.log(`QUOTE SUBMISSION ERROR:  ${e}`)
   }
   return
@@ -259,6 +251,8 @@ async function executeSwap(event) {
     })
     console.log(receipt)
   } catch (e) {
+    quoteContainer.innerHTML = ''
+    quoteContainer.innerHTML = `<p class='error'>Swap execution did not succeed. Contact support.</p>`
     console.log(`SWAP EXECUTION ERROR:  ${e}`)
   }
 }
