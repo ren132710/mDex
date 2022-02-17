@@ -12,82 +12,83 @@
     <title>mDex</title>
 </head>
 
-<body></body>
-<div class="container">
-    <div class="row">
-        <div class="col-12 col-sm-6">
-            <h1>MoralisSwap</h1>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-sm-6">
+                <h1>MoralisSwap</h1>
+            </div>
+            <div class="col-12 col-sm-6 d-flex justify-content-sm-end align-items-sm-center">
+                <button id="btn-buy-crypto" class="btn btn-outline-secondary">Buy Crypto</button>
+                <button id="btn-login" class="btn btn-outline-secondary">Connect Wallet</button>
+                <button id="btn-logout" class="btn btn-outline-secondary">Disconnect Wallet</button>
+            </div>
         </div>
-        <div class="col-12 col-sm-6 d-flex justify-content-sm-end align-items-sm-center">
-            <button id="btn-buy-crypto" class="btn btn-outline-secondary">Buy Crypto</button>
-            <button id="btn-login" class="btn btn-outline-secondary">Connect Wallet</button>
-            <button id="btn-logout" class="btn btn-outline-secondary">Disconnect Wallet</button>
-        </div>
+        <hr>
     </div>
-    <hr>
-</div>
 
-<div class="container">
-    <table class="table table-light table-bordered table-responsive-md table-striped">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Symbol</th>
-                <th>Name</th>
-                <th>Balance</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="tokenBalances" class="token-balances"></tbody>
-    </table>
+    <div class="container">
+        <table class="table table-light table-bordered table-responsive-md table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Symbol</th>
+                    <th>Name</th>
+                    <th>Balance</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tokenBalances" class="token-balances"></tbody>
+        </table>
 
-    <form action="#" method="POST" class="exchange-form">
-        <div class="row">
-            <div class="col-12 col-sm-6 d-flex align-items-sm-center my-1">
-                <label>
-                    <span id="fromToken" class="from-token"></span>
-                    Amount:
-                    <input type="text" id="fromAmount" class="from-amount" disabled />
-                </label>
+        <form action="#" method="POST" class="exchange-form">
+            <div class="row">
+                <div class="col-12 col-sm-6 d-flex align-items-sm-center my-1">
+                    <label>
+                        <span id="fromToken" class="from-token"></span>
+                        Amount:
+                        <input type="text" id="fromAmount" class="from-amount" disabled />
+                    </label>
 
+                </div>
+                <div class="col-12 col-sm-6 d-flex justify-content-sm-end align-items-sm-center my-1">
+                    <label>
+                        Swap to:
+                        <select id="toToken" class="to-list"></select>
+                    </label>
+                </div>
             </div>
-            <div class="col-12 col-sm-6 d-flex justify-content-sm-end align-items-sm-center my-1">
-                <label>
-                    Swap to:
-                    <select id="toToken" class="to-list"></select>
-                </label>
+            <div class="row">
+                <div class="col">
+                    <div id="errorContainer" class="error"></div>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col">
-                <div id="errorContainer" class="error"></div>
+            <div class="row">
+                <div class="col d-flex justify-content-center quote-cancel-container">
+                    <button type="submit" id="btn-getQuote" class="btn btn-outline-secondary" disabled>Get
+                        Quote</button>
+                    <button id="btn-cancel" class="btn btn-outline-secondary" disabled>Cancel</button>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col d-flex justify-content-center quote-cancel-container">
-                <button type="submit" id="btn-getQuote" class="btn btn-outline-secondary" disabled>Get Quote</button>
-                <button id="btn-cancel" class="btn btn-outline-secondary" disabled>Cancel</button>
+            <div class="row">
+                <div class="col d-flex justify-content-center">
+                    <div id="quoteContainer" class="container-quote hide"></div>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col d-flex justify-content-center">
-                <div id="quoteContainer" class="container-quote hide"></div>
-            </div>
-        </div>
 
-    </form>
-</div>
+        </form>
+    </div>
 
 
-<!-- Moralis SDK code -->
-<script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-<script src="https://unpkg.com/moralis/dist/moralis.js"></script>
-<!-- JavaScript Bundle with Popper -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
-    crossorigin="anonymous"></script>
-<!-- Always place the project js file below the imported js files -->
-<script src="./dex.js" defer></script>
+    <!-- Moralis SDK code -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="https://unpkg.com/moralis/dist/moralis.js"></script>
+    <!-- JavaScript Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+    <!-- Always place the project js file below the imported js files -->
+    <script src="./dex.js"></script>
 </body>
 
 </html>
