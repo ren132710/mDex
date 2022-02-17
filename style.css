@@ -30,8 +30,11 @@ body {
   background-color: #c6c7f3;
 }
 
+.quote-cancel-container {
+  margin-bottom: 30px;
+}
+
 .container-quote {
-  margin: 20px;
   padding: 10px;
   color: #0b0fe2;
   text-align: center;
@@ -40,6 +43,7 @@ body {
   border-top-style: groove;
   border-radius: 3px;
   border-radius: 3px;
+  margin-bottom: 50px;
 }
 
 .hide {

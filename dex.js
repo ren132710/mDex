@@ -41,8 +41,8 @@ btnCancel.addEventListener('click', cancel)
  * Initialize Moralis
  */
 
-const serverUrl = 'https://o8dn9wfqrhke.usemoralis.com:2053/server'
-const appId = 'jY2tKsqywB9GOI81MP6IANuKpyGK4hrYROjXaf8G'
+const serverUrl = 'https://sjcodboestcj.usemoralis.com:2053/server'
+const appId = 'KDNPoK8MhB38ipDGjoTLuwFwgKY0iI3aNdZxePWQ'
 
 //TODO: Should Moralis.start() be asynchronous? Is this causing the below oneInch api call to throw a TypeError??
 Moralis.start({ serverUrl, appId })
@@ -203,11 +203,12 @@ async function getQuote(event) {
 
     //keep a record of the quote
     quoteRecord = quote
+    displayQuoteInfo(quote)
   } catch (e) {
     quoteContainer.innerHTML = `<p class='error'>Quote submission did not succeed: ${e}.</p>`
     console.log(`QUOTE SUBMISSION ERROR:  ${e}`)
   }
-  displayQuoteInfo(quote)
+
   return
 }
 
