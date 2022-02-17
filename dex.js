@@ -21,7 +21,8 @@ let userAddress
 /*
  * DOM handles
  */
-//login/logout
+
+//connect & disconnect wallet
 const btnLogin = document.querySelector('#btn-login')
 const btnLogOut = document.querySelector('#btn-logout')
 const btnBuyCrypto = document.querySelector('#btn-buy-crypto')
@@ -87,7 +88,7 @@ async function fetchTopTokenInfo(tickers) {
   //1inch JSON hierarchy requires going 2 levels deep to get the value objects
   tokenList = Object.values(tokens.tokens)
 
-  //keep a record of the top ERC20 tokens
+  //keep a record of the top tokens
   topTokens = tokenList.filter((token) => tickers.includes(token.symbol))
   return topTokens
 }
