@@ -74,7 +74,7 @@ async function fetchTopTickers() {
 
 async function fetchTopTokenInfo(tickers) {
   const tokens = await Moralis.Plugins.oneInch.getSupportedTokens({
-    chain: chain, // The blockchain you want to use (eth/bsc/polygon)
+    chain: chain,
   })
 
   //1inch JSON hierarchy requires going 2 levels deep to get the value objects
@@ -118,8 +118,8 @@ async function logOut() {
   console.log('logged out')
 }
 
-//without options parameter, defaults to "Eth" as chain and the current user
 async function getTokenBalances() {
+  //without options parameter, defaults to "Eth" as chain and the current user
   const options = { chain: chain }
   const balances = await Moralis.Web3API.account.getTokenBalances(options)
 
