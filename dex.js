@@ -42,8 +42,8 @@ btnCancel.addEventListener('click', cancel)
  * Initialize Page
  */
 
-const serverUrl = 'https://sjcodboestcj.usemoralis.com:2053/server'
-const appId = 'KDNPoK8MhB38ipDGjoTLuwFwgKY0iI3aNdZxePWQ'
+//const serverUrl = <Moralis server url>
+//const appId = <Moralis application id>
 Moralis.start({ serverUrl, appId })
 
 //onramper plugin
@@ -228,7 +228,6 @@ function displayQuoteInfo(quote) {
 }
 
 async function executeSwap(event) {
-  //console.log('Event passed to executeSwap: ', event)
   event.preventDefault()
   try {
     let receipt = await Moralis.Plugins.oneInch.swap({
@@ -252,7 +251,7 @@ async function executeSwap(event) {
   }
 }
 
-async function cancel(event) {
+function cancel(event) {
   event.preventDefault()
   //disable the input box and buttons
   //empty '' sets the attribute to true
@@ -291,7 +290,6 @@ function getFromTokenProperties() {
 }
 
 function getToTokenProperties() {
-  //parse the option values
   let toToken = document.querySelector('#toToken').value
   let [decimals, address] = toToken.split('-')
 
