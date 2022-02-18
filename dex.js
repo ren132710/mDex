@@ -119,7 +119,7 @@ async function logOut() {
 }
 
 async function getTokenBalances() {
-  //without options parameter, defaults to "Eth" as chain and the current user
+  //defaults to "Eth" as chain and the current user, unless options
   const options = { chain: chain }
   const balances = await Moralis.Web3API.account.getTokenBalances(options)
 
