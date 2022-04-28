@@ -1,3 +1,10 @@
 # mDex
 
-Moralis - Create simple Dex using the Moralis SDK
+Practice
+
+- Intro to Javacript
+- Moralis SDK basics
+- fetch()
+- Coingecko api
+- 1Inch api
+- Bootstrap
