@@ -7,4 +7,4 @@ Practice
 - fetch()
 - Coingecko api
 - 1Inch api
-- Bootstrap (CSS)
+- CSS Bootstrap (yuck)
